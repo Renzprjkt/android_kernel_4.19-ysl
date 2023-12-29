@@ -29,8 +29,6 @@ DEFINE_MSM_MUTEX(msm_flash_mutex);
 
 static struct v4l2_file_operations msm_flash_v4l2_subdev_fops;
 static struct led_trigger *torch_trigger;
-static struct msm_flash_ctrl_t *g_fctrl;
-static unsigned char g_flashlight_brightness;
 
 static const struct of_device_id msm_flash_dt_match[] = {
 	{.compatible = "qcom,camera-flash", .data = NULL},
@@ -393,8 +391,6 @@ static int32_t msm_flash_i2c_release(
 			__func__, __LINE__);
 		return -EINVAL;
 	}
-
-	flash_ctrl->flash_state = MSM_CAMERA_FLASH_RELEASE;
 	return 0;
 }
 
@@ -739,7 +735,6 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 	switch (flash_data->cfg_type) {
 	case CFG_FLASH_INIT:
 		rc = msm_flash_init_prepare(flash_ctrl, flash_data);
-		g_flashlight_brightness = 0;
 		break;
 	case CFG_FLASH_RELEASE:
 		if (flash_ctrl->flash_state != MSM_CAMERA_FLASH_RELEASE) {
@@ -757,7 +752,6 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 				flash_ctrl, flash_data);
 			if (!rc)
 				flash_ctrl->flash_state = MSM_CAMERA_FLASH_OFF;
-			g_flashlight_brightness = 0;
 		} else {
 			CDBG(pr_fmt("Invalid state : %d\n"),
 				flash_ctrl->flash_state);
@@ -770,7 +764,6 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 				flash_ctrl, flash_data);
 			if (!rc)
 				flash_ctrl->flash_state = MSM_CAMERA_FLASH_LOW;
-			g_flashlight_brightness = 100;
 		} else {
 			CDBG(pr_fmt("Invalid state : %d\n"),
 				flash_ctrl->flash_state);
@@ -783,7 +776,6 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 				flash_ctrl, flash_data);
 			if (!rc)
 				flash_ctrl->flash_state = MSM_CAMERA_FLASH_HIGH;
-			g_flashlight_brightness = 100;
 		} else {
 			CDBG(pr_fmt("Invalid state : %d\n"),
 				flash_ctrl->flash_state);
@@ -1321,7 +1313,6 @@ static int32_t msm_flash_platform_probe(struct platform_device *pdev)
 	if (flash_ctrl->flash_driver_type == FLASH_DRIVER_PMIC)
 		rc = msm_torch_create_classdev(pdev, flash_ctrl);
 
-	msm_flashlight_create_classdev(pdev, flash_ctrl);
 	CDBG("probe success\n");
 	return rc;
 }
@@ -1346,8 +1337,6 @@ static int __init msm_flash_init_module(void)
 	int32_t rc = 0;
 
 	CDBG("Enter\n");
-	g_fctrl = NULL;
-	g_flashlight_brightness = 0;
 	rc = platform_driver_register(&msm_flash_platform_driver);
 	if (rc)
 		pr_err("platform probe for flash failed\n");
