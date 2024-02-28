@@ -116,5 +116,8 @@ obj-$(CONFIG_TOUCHSCREEN_FTS)	+= focaltech_touch/
 obj-$(CONFIG_TOUCHSCREEN_NT36XXX)	+= nt36xxx/
 obj-$(CONFIG_TOUCHSCREEN_FT5X46)		+= ft5x46/
 obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FORCE)	+= synaptics_dsx_force/
+obj-$(CONFIG_TOUCHSCREEN_GT9XX)		+= gt9xx/
+obj-$(CONFIG_TOUCHSCREEN_FT5446)	+= ft5446/
+obj-$(CONFIG_VITURALSAR)		+= vituralsar_driver.o
 
 obj-$(CONFIG_MACH_XIAOMI_YSL)	+= lct_tp_fm_info.o
