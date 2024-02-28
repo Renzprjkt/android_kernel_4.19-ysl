@@ -965,6 +965,7 @@ static const struct of_device_id goodix_of_match[] = {
 	{ .compatible = "goodix,gt1151" },
 	{ .compatible = "goodix,gt911" },
 	{ .compatible = "goodix,gt9110" },
+	{ .compatible = "goodix,gt917d" },
 	{ .compatible = "goodix,gt912" },
 	{ .compatible = "goodix,gt927" },
 	{ .compatible = "goodix,gt9271" },
