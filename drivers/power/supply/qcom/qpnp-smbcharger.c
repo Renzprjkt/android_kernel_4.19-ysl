@@ -59,7 +59,6 @@ int LctIsInCall = 0;
 int LctThermal =0;
 #endif
 
-
 /* Mask/Bit helpers */
 #define _SMB_MASK(BITS, POS) \
 	((unsigned char)(((1 << (BITS)) - 1) << (POS)))
@@ -218,8 +217,8 @@ struct smbchg_chip {
 	bool				batt_hot;
 	bool				batt_cold;
 	bool				batt_warm;
-	bool				batt_cool_xiaomi;
 	bool				batt_cool;
+	bool				batt_cool_xiaomi;
 	unsigned int			thermal_levels;
 	unsigned int			therm_lvl_sel;
 	unsigned int			*thermal_mitigation;
@@ -892,7 +891,6 @@ static void read_usb_type(struct smbchg_chip *chip, char **usb_type_name,
 #define BATT_TAPER_CHG_VAL		0x3
 #define CHG_INHIBIT_BIT			BIT(1)
 #define BAT_TCC_REACHED_BIT		BIT(7)
-
 
 bool g_charger_present;
 static int get_prop_batt_health(struct smbchg_chip *chip);
@@ -3478,8 +3476,7 @@ static int smbchg_config_chg_battery_type(struct smbchg_chip *chip)
 		if (rc < 0) {
 			dev_err(chip->dev,
 			"Couldn't set float voltage rc = %d\n", rc);
-			return rc;eturn rc;
-			}
+			return rc;
 		}
 	}
 
@@ -4458,7 +4455,7 @@ static void xiaomi_jeita_work(struct work_struct *work)
 
 
 	if(chip->bms_psy){
-		chip->bms_psy->get_property(chip->bms_psy, POWER_SUPPLY_PROP_BATTERY_TYPE, &prop);
+		power_supply_get_property(chip->bms_psy, POWER_SUPPLY_PROP_BATTERY_TYPE, &prop);
 		if(strcmp(prop.strval, "unknown-battery") == 0)
 			vote(chip->fcc_votable, "BATTCHG_UNKNOWN", true, 500);
 	}
@@ -5946,9 +5943,6 @@ static int smbchg_battery_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
 		val->intval = get_prop_charge_type(chip);
-		break;
-	case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
-		val->intval = get_prop_batt_capacity_full(chip);
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_MAX:
 		val->intval = smbchg_float_voltage_get(chip);
@@ -8075,6 +8069,7 @@ static int smbchg_probe(struct platform_device *pdev)
 	struct smbchg_chip *chip;
 	struct power_supply *typec_psy = NULL;
 	const char *typec_psy_name;
+	unsigned char attr_count2;
 	struct power_supply_config usb_psy_cfg = {};
 	struct power_supply_config batt_psy_cfg = {};
 	struct power_supply_config dc_psy_cfg = {};
@@ -8447,15 +8442,6 @@ static int smbchg_remove(struct platform_device *pdev)
 {
 	struct smbchg_chip *chip = dev_get_drvdata(&pdev->dev);
 
-	#ifdef THERMAL_CONFIG_FB
-	unsigned char attr_count2;
-	for (attr_count2 = 0; attr_count2 < ARRAY_SIZE(attrs2); attr_count2++) {
-		sysfs_remove_file(&chip->dev->kobj,
-						&attrs2[attr_count2].attr);
-	}
-	lct_unregister_powermanger(chip);
-	#endif
-
 	debugfs_remove_recursive(chip->debug_root);
 
 	destroy_votable(chip->aicl_deglitch_short_votable);
@@ -8475,6 +8461,15 @@ static void smbchg_shutdown(struct platform_device *pdev)
 {
 	struct smbchg_chip *chip = dev_get_drvdata(&pdev->dev);
 	int rc;
+
+	#ifdef THERMAL_CONFIG_FB
+	unsigned char attr_count2;
+	for (attr_count2 = 0; attr_count2 < ARRAY_SIZE(attrs2); attr_count2++) {
+		sysfs_remove_file(&chip->dev->kobj,
+						&attrs2[attr_count2].attr);
+	}
+	lct_unregister_powermanger(chip);
+	#endif
 
 	if (!(chip->wa_flags & SMBCHG_RESTART_WA))
 		return;
