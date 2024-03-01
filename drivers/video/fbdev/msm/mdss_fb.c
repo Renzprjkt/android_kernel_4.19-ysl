@@ -17,7 +17,7 @@
 #include <linux/dma-mapping.h>
 #include <linux/dma-buf.h>
 #include <linux/mdss_io_util.h>
-#include <linux/wakelock.h>
+#include <linux/pm_wakeup.h>
 #include "mdss_dsi.h"
 #include <linux/fb.h>
 #include <linux/init.h>
