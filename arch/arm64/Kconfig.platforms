@@ -437,11 +437,18 @@ config MACH_XIAOMI_OXYGEN
 	  Support for the Xiaomi Max 2 platform
 	  which is based on QCOM MSM8953 chipset.
 
+<<<<<<< HEAD
 config MACH_XIAOMI_YSL
 	bool  "XIAOMI platform"
 	depends on ARCH_MSM8953
 	help
 	  Support for the Xiaomi Redmi S2 platform
 	  which is based on QCOM MSM8953 chipset.
+=======
+config YSL
+	bool "Based on Platform msm8917"
+	def_bool ARCH_MSM8917
+#end zhanghua 20170916
+>>>>>>> b92d8db727ee (defconfig: mdss enable)
 
 endmenu
