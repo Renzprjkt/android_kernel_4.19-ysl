@@ -319,9 +319,6 @@ struct device_node *of_batterydata_get_best_profile(
 	int delta = 0, best_delta = 0, best_id_kohm = 0, id_range_pct,
 		i = 0, rc = 0, limit = 0;
 	bool in_range = false;
-#ifdef CONFIG_MACH_XIAOMI_OXYGEN
-	struct device_node *generic_node = NULL;
-#endif
 
 	/* read battery id range percentage for best profile */
 	rc = of_property_read_u32(batterydata_container_node,
