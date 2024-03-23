@@ -88,78 +88,7 @@ static struct led_classdev msm_torch_led[MAX_LED_TRIGGERS] = {
 	},
 };
 
-static void msm_pmic_flashlight_brightness_set(struct led_classdev *led_cdev,
-		enum led_brightness value)
-{
-	uint32_t curr[2];
-	uint32_t max_current = 0;
-	int32_t i = 0;
-	struct msm_flash_ctrl_t *flash_ctrl = g_fctrl;
-
-	for (i = 0; i < flash_ctrl->torch_num_sources; i++) {
-		max_current += flash_ctrl->torch_max_current[i];
-	}
-
-	/* Dual color flashlight interface range is 128 */
-
-	curr[0] = max_current * value / 128;
-	curr[1] = max_current - curr[0];
-
-	g_flashlight_brightness = value;
-
-	if (value == 0) {
-		/* Turn off flash triggers */
-		for (i = 0; i < flash_ctrl->torch_num_sources; i++)
-			if (flash_ctrl->torch_trigger[i])
-				led_trigger_event(flash_ctrl->torch_trigger[i], 0);
-
-		if (flash_ctrl->switch_trigger)
-			led_trigger_event(flash_ctrl->switch_trigger, 0);
-
-	} else {
-		/* Turn on flash triggers */
-		for (i = 0; i < flash_ctrl->torch_num_sources; i++)
-				led_trigger_event(flash_ctrl->torch_trigger[i], curr[i]);
-
-		if (flash_ctrl->switch_trigger)
-			led_trigger_event(flash_ctrl->switch_trigger, 1);
-
-	}
-}
-
-static enum led_brightness msm_flashlight_brightness_get(struct led_classdev *led_cdev)
-{
-	return g_flashlight_brightness;
-}
-
-static struct led_classdev msm_pmic_flashlight_led = {
-       .name           = "flashlight",
-       .brightness_set = msm_pmic_flashlight_brightness_set,
-       .brightness_get = msm_flashlight_brightness_get,
-       .brightness     = LED_OFF,
-};
-int32_t msm_flashlight_create_classdev(struct platform_device *pdev,
-		void *data)
-{
-	int32_t i, rc = 0;
-	struct msm_flash_ctrl_t *fctrl =
-		(struct msm_flash_ctrl_t *)data;
-
-	if (!fctrl) {
-		pr_err("Invalid fctrl\n");
-		return -EINVAL;
-	}
-
-	g_fctrl = fctrl;
-
-	rc = led_classdev_register(&pdev->dev, &msm_pmic_flashlight_led);
-	if (rc) {
-		pr_err("Failed to register %d led dev. rc = %d\n", i, rc);
-		return rc;
-	}
-	return 0;
-}
-
+static int msm_torch_led_num;
 static int32_t msm_torch_create_classdev(struct platform_device *pdev,
 				void *data)
 {
@@ -178,16 +107,17 @@ static int32_t msm_torch_create_classdev(struct platform_device *pdev,
 			torch_trigger = fctrl->torch_trigger[i];
 			CDBG("%s:%d msm_torch_brightness_set for torch %d",
 				__func__, __LINE__, i);
-			msm_torch_brightness_set(&msm_torch_led[i],
+			msm_torch_brightness_set(&msm_torch_led[msm_torch_led_num + i],
 				LED_OFF);
 
 			rc = led_classdev_register(&pdev->dev,
-				&msm_torch_led[i]);
+				&msm_torch_led[msm_torch_led_num + i]);
 			if (rc) {
 				pr_err("Failed to register %d led dev. rc = %d\n",
 						i, rc);
 				return rc;
 			}
+			msm_torch_led_num++;
 		} else {
 			pr_err("Invalid fctrl->torch_trigger[%d]\n", i);
 			return -EINVAL;
@@ -714,9 +644,7 @@ static int32_t msm_flash_low(
 				pr_debug("LED current clamped to %d\n",
 					curr);
 			}
-			CDBG("low_flash_current[%d] = %d", i, curr);
-			led_trigger_event(flash_ctrl->torch_trigger[i],
-				curr);
+			led_trigger_event(flash_ctrl->torch_trigger[i], curr);
 		}
 	}
 	if (flash_ctrl->switch_trigger)
@@ -807,8 +735,6 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 		(struct msm_flash_cfg_data_t *) argp;
 
 	mutex_lock(flash_ctrl->flash_mutex);
-
-	CDBG("Enter %s type %d\n", __func__, flash_data->cfg_type);
 
 	switch (flash_data->cfg_type) {
 	case CFG_FLASH_INIT:
