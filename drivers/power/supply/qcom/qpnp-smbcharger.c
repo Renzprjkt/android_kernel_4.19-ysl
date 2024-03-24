@@ -6010,8 +6010,6 @@ static int smbchg_battery_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CYCLE_COUNT:
 		val->intval = get_prop_batt_cycle_count(chip);
-    case POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN:
-		val->intval = CHARGE_FULL_DESIGIN;
 		break;
 	default:
 		return -EINVAL;
