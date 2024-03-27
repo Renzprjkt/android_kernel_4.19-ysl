@@ -2,7 +2,6 @@
 #include <linux/module.h>
 #include <linux/export.h>
 #include <linux/init.h>
-#include <linux/device.h>
 #include <linux/platform_device.h>
 #include <linux/io.h>
 #include <linux/proc_fs.h>
