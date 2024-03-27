@@ -7,7 +7,7 @@
 #include <linux/of_platform.h> /* temporary until merge */
 
 #include <linux/of.h>
-#include <linux/mod_devicetable.h>
+#include <linux/mod_devicetable.h> 
 
 struct device;
 
